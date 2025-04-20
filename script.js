@@ -1,9 +1,19 @@
 let paletteBg = "#1d1d1b";
-let paletteStroke = "#DEDDE2"; // light grey for outlines
+let paletteStroke = "#DEDDE2";
 let paletteColors = [
   "#F49306", "#F13D09", "#E0858E",
   "#A5BB1A", "#DEDDE2", "#F5CAE8"
 ];
+
+function refreshSketch() {
+  seed = random(1000);
+  redraw(); // force redraw since p5 loop is running
+}
+
+window.onload = function () {
+  const btn = document.getElementById("refreshBtn");
+  btn.addEventListener("click", refreshSketch);
+};
 
 let cols, rows, moduleSize;
 let seed;
@@ -13,11 +23,11 @@ function setup() {
   angleMode(RADIANS);
   noFill();
   strokeCap(ROUND);
-  
+
   cols = floor(random(4, 7));
   moduleSize = width / cols;
   rows = ceil(height / moduleSize);
-  
+
   seed = random(1000);
 }
 
@@ -33,17 +43,18 @@ function draw() {
       push();
       translate(x + moduleSize / 2, y + moduleSize / 2);
 
-      // Stroke and fill handling
       let strokeCol = random(paletteColors);
       let fillCol = random(paletteColors.filter(c => c !== strokeCol));
       stroke(strokeCol);
       strokeWeight(1.5);
       fill(fillCol);
 
-      let shapeType = floor(random(3));
+      let shapeType = floor(random(4)); // Now 4 types
       if (shapeType === 0) drawBlob(moduleSize * 0.35);
       else if (shapeType === 1) drawSpiral(moduleSize * 0.4);
-      else drawWaveform(moduleSize * 0.8, 15);
+      else if (shapeType === 2) drawWaveform(moduleSize * 0.8, 15);
+      else drawCircularFractal(moduleSize * 0.15, 3);
+
       pop();
     }
   }
@@ -84,6 +95,26 @@ function drawWaveform(length, amplitude) {
     vertex(x, y);
   }
   endShape();
+}
+
+function drawCircularFractal(radius, depth) {
+  if (depth <= 0 || radius < 2) return;
+
+  ellipse(0, 0, radius * 2);
+  let branches = 6;
+  let angleOffset = frameCount * 0.01;
+
+  for (let i = 0; i < branches; i++) {
+    let angle = TWO_PI * i / branches + angleOffset;
+    let newX = cos(angle) * radius * 1.5;
+    let newY = sin(angle) * radius * 1.5;
+
+    push();
+    translate(newX, newY);
+    scale(0.9);
+    drawCircularFractal(radius * 0.5, depth - 1);
+    pop();
+  }
 }
 
 function windowResized() {
